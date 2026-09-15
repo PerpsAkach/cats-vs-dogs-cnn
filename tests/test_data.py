@@ -35,7 +35,7 @@ def test_load_image_returns_normalized_rgb(tmp_path):
     path = tmp_path / "image.jpg"
     _write_rgb(path, 255)
     image = load_image(path, image_size=(4, 5))
-    assert image.shape == (5, 4, 3) or image.shape == (4, 5, 3)
+    assert image.shape == (4, 5, 3)
     assert image.dtype == np.float32
     assert image.min() >= 0
     assert image.max() <= 1
