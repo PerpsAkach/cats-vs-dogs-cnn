@@ -68,9 +68,11 @@ def summarize_dataset(root: Path) -> DatasetSummary:
 
 
 def load_image(path: Path, image_size: tuple[int, int] | None = None) -> np.ndarray:
-    target_size = image_size or DEFAULT_CONFIG.image_size
+    """Load one image as normalized RGB; image_size is (height, width)."""
+
+    target_height, target_width = image_size or DEFAULT_CONFIG.image_size
     with Image.open(path) as image:
-        rgb = image.convert("RGB").resize(target_size)
+        rgb = image.convert("RGB").resize((target_width, target_height))
         return np.asarray(rgb, dtype=np.float32) / 255.0
 
 
