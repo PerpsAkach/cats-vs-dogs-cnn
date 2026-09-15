@@ -48,7 +48,7 @@ def evaluate_binary_predictions(
         raise ValueError("probabilities must be in [0, 1]")
 
     labels = set(np.unique(y_true_arr).tolist())
-    if not labels.issubset({0, 1, 0.0, 1.0}):
+    if not labels.issubset({0, 1}):
         raise ValueError("y_true must contain only binary labels 0 and 1")
 
     predicted = (prob_arr >= threshold).astype(int)
