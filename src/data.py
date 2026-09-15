@@ -1,8 +1,8 @@
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
 
 import numpy as np
 from PIL import Image
@@ -105,16 +105,16 @@ def build_tf_datasets(
 
     import tensorflow as tf
 
-    common = dict(
-        directory=str(Path(root)),
-        labels="inferred",
-        label_mode="binary",
-        class_names=["cats", "dogs"],
-        image_size=cfg.image_size,
-        batch_size=cfg.batch_size,
-        validation_split=cfg.validation_fraction,
-        seed=cfg.random_seed,
-    )
+    common = {
+        "directory": str(Path(root)),
+        "labels": "inferred",
+        "label_mode": "binary",
+        "class_names": ["cats", "dogs"],
+        "image_size": cfg.image_size,
+        "batch_size": cfg.batch_size,
+        "validation_split": cfg.validation_fraction,
+        "seed": cfg.random_seed,
+    }
     train_ds = tf.keras.utils.image_dataset_from_directory(
         subset="training",
         shuffle=True,
