@@ -1,0 +1,101 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install lean test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install \
+            "numpy>=1.26,<3" \
+            "pandas>=2.2,<3" \
+            "pillow>=10,<13" \
+            "scikit-learn>=1.5,<2" \
+            "pytest>=9.0.3,<10"
+      - name: Compile source
+        run: python -m compileall -q src train.py
+      - name: Run lightweight tests
+        run: python -m pytest -q tests/test_config.py tests/test_data.py tests/test_evaluation.py
+
+  tensorflow-runtime:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements.txt
+      - name: Install runtime dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+      - name: Import runtime stack
+        run: |
+          python - <<'PY'
+          import numpy
+          import pandas
+          import PIL
+          import sklearn
+          import tensorflow as tf
+          print("tensorflow", tf.__version__)
+          print("numpy", numpy.__version__)
+          print("pandas", pandas.__version__)
+          print("pillow", PIL.__version__)
+          print("scikit-learn", sklearn.__version__)
+          PY
+      - name: Run full test suite
+        run: python -m pytest -q
+      - name: Validate training CLI
+        run: python train.py --help
+
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install Ruff
+        run: python -m pip install --upgrade ruff
+      - name: Lint source and tests
+        run: ruff check src tests train.py
+
+  dependency-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install audit tooling
+        run: python -m pip install --upgrade pip pip-audit
+      - name: Audit declared dependencies
+        run: pip-audit -r requirements.txt
